@@ -1,0 +1,151 @@
+@model Blood_Donation.Models.Donor
+
+@{
+    ViewData["Title"] = "الملف الشخصي - متبرع";
+}
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card shadow">
+            <div class="card-header bg-danger text-white text-center">
+                <h4><i class="fas fa-user-circle"></i> معلومات المتبرع</h4>
+            </div>
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="fas fa-user fa-5x text-danger"></i>
+                </div>
+                <h4 class="mb-3">@Model.User.FullName</h4>
+
+                <div class="mb-3">
+                    <span class="badge bg-danger fs-4">@Model.BloodType</span>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <form asp-action="ToggleAvailability" method="post">
+                        @if (Model.IsAvailable)
+                        {
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-check-circle"></i> متاح للتبرع
+                            </button>
+                        }
+                        else
+                        {
+                            <button type="submit" class="btn btn-secondary btn-lg">
+                                <i class="fas fa-times-circle"></i> غير متاح
+                            </button>
+                        }
+                    </form>
+                </div>
+
+                <hr>
+
+                <div class="text-start">
+                    <p><i class="fas fa-envelope"></i> <strong>البريد:</strong> @Model.User.Email</p>
+                    <p><i class="fas fa-phone"></i> <strong>الهاتف:</strong> @Model.User.PhoneNumber</p>
+                    <p><i class="fas fa-map-marker-alt"></i> <strong>المدينة:</strong> @Model.User.City?.CityName</p>
+                    <p><i class="fas fa-venus-mars"></i> <strong>الجنس:</strong> @(Model.Gender == "Male" ? "ذكر" :
+                                                "أنثى")</p>
+                    <p><i class="fas fa-birthday-cake"></i> <strong>تاريخ الميلاد:</strong>
+                        @Model.DateOfBirth.ToString("yyyy/MM/dd")</p>
+                    @if (Model.LastDonationDate.HasValue)
+                    {
+                        <p><i class="fas fa-calendar-check"></i> <strong>آخر تبرع:</strong>
+                            @Model.LastDonationDate.Value.ToString("yyyy/MM/dd")</p>
+                    }
+                    else
+                    {
+                        <p><i class="fas fa-calendar-times"></i> <strong>آخر تبرع:</strong> لم يتم التبرع بعد</p>
+                    }
+                </div>
+
+                <hr>
+
+                <div class="d-grid gap-2">
+                    <a asp-action="Edit" class="btn btn-primary">
+                        <i class="fas fa-edit"></i> تعديل البيانات
+                    </a>
+                    <a asp-action="MyDonations" class="btn btn-info text-white">
+                        <i class="fas fa-history"></i> سجل التبرعات
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card shadow mb-4">
+            <div class="card-header bg-primary text-white">
+                <h4><i class="fas fa-info-circle"></i> معلومات مهمة للمتبرعين</h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <h5><i class="fas fa-heartbeat"></i> شروط التبرع بالدم:</h5>
+                    <ul>
+                        <li>العمر من 18 إلى 65 سنة</li>
+                        <li>الوزن أكثر من 50 كجم</li>
+                        <li>عدم التبرع في آخر 3 أشهر</li>
+                        <li>عدم الإصابة بأمراض مزمنة</li>
+                        <li>عدم تناول أدوية معينة</li>
+                    </ul>
+                </div>
+
+                <div class="alert alert-warning">
+                    <h5><i class="fas fa-exclamation-triangle"></i> نصائح بعد التبرع:</h5>
+                    <ul>
+                        <li>شرب سوائل كثيرة</li>
+                        <li>تناول وجبة خفيفة</li>
+                        <li>تجنب المجهود الشاق لمدة 24 ساعة</li>
+                        <li>الراحة لمدة 15 دقيقة بعد التبرع</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h4><i class="fas fa-chart-line"></i> إحصائيات التبرع</h4>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-4 mb-3">
+                        <div class="border rounded p-3">
+                            <h2 class="text-danger">@Model.DonationHistories?.Count() ?? 0</h2>
+                            <p class="mb-0">عدد التبرعات</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="border rounded p-3">
+                            <h2 class="text-success">@((Model.DonationHistories?.Count() ?? 0) * 450) مل</h2>
+                            <p class="mb-0">كمية الدم المتبرع بها</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="border rounded p-3">
+                            <h2 class="text-info">@((Model.DonationHistories?.Count() ?? 0) * 3)</h2>
+                            <p class="mb-0">عدد الأرواح المنقذة</p>
+                        </div>
+                    </div>
+                </div>
+
+                @if (Model.LastDonationDate.HasValue)
+                {
+                    var daysSinceLastDonation = (DateTime.Now - Model.LastDonationDate.Value).Days;
+                    var canDonateIn = 90 - daysSinceLastDonation;
+
+                    @if (canDonateIn > 0)
+                    {
+                        <div class="alert alert-warning mt-3">
+                            <i class="fas fa-clock"></i> يمكنك التبرع مرة أخرى بعد <strong>@canDonateIn يوم</strong>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-success mt-3">
+                            <i class="fas fa-check-circle"></i> يمكنك التبرع الآن!
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>
