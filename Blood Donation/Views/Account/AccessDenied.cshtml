@@ -1,0 +1,76 @@
+@{
+    ViewData["Title"] = "الوصول مرفوض";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow border-danger">
+                <div class="card-header bg-danger text-white text-center">
+                    <h3><i class="fas fa-exclamation-triangle"></i> الوصول مرفوض</h3>
+                </div>
+                <div class="card-body text-center p-5">
+                    <i class="fas fa-lock fa-5x text-danger mb-4"></i>
+                    <h4 class="mb-4">عذراً، ليس لديك صلاحية للوصول إلى هذه الصفحة</h4>
+                    <p class="text-muted mb-4">
+                        هذه الصفحة متاحة فقط للمتبرعين المسجلين في النظام
+                    </p>
+                    
+                    @if (User.Identity?.IsAuthenticated != true)
+                    {
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            يرجى تسجيل الدخول كمتبرع للوصول إلى هذه الصفحة
+                        </div>
+                        <div class="d-grid gap-2">
+                            <a asp-action="Login" asp-controller="Account" asp-route-returnUrl="@ViewData["ReturnUrl"]" class="btn btn-primary">
+                                <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
+                            </a>
+                            <a asp-action="Register" asp-controller="Account" class="btn btn-success">
+                                <i class="fas fa-user-plus"></i> تسجيل حساب جديد
+                            </a>
+                        </div>
+                    }
+                    else if (User.IsInRole("Patient"))
+                    {
+                        <div class="alert alert-warning">
+                            <i class="fas fa-user-injured"></i>
+                            أنت مسجل كمريض. هذه الصفحة متاحة فقط للمتبرعين
+                        </div>
+                        <p class="text-muted small">
+                            إذا كنت ترغب في التبرع بالدم، يرجى إنشاء حساب جديد كمتبرع
+                        </p>
+                    }
+                    else if (User.IsInRole("Admin"))
+                    {
+                        <div class="alert alert-info">
+                            <i class="fas fa-user-shield"></i>
+                            أنت مسجل كمسؤول. هذه الصفحة مخصصة للمتبرعين
+                        </div>
+                    }
+                    
+                    <div class="mt-4">
+                        <a asp-action="Index" asp-controller="Home" class="btn btn-secondary">
+                            <i class="fas fa-home"></i> العودة للصفحة الرئيسية
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border-radius: 15px;
+        overflow: hidden;
+    }
+    
+    .card-header {
+        padding: 1.5rem;
+    }
+    
+    .fa-5x {
+        font-size: 5rem;
+    }
+</style>
