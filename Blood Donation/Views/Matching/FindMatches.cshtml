@@ -1,0 +1,123 @@
+@model List<Blood_Donation.Models.Donor>
+
+@{
+    ViewData["Title"] = "المتبرعون المتطابقون";
+    var request = ViewBag.Request as Blood_Donation.Models.BloodRequest;
+    var compatibleTypes = ViewBag.CompatibleTypes as List<string>;
+}
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h3><i class="fas fa-search"></i> البحث عن متبرعين متطابقين</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>فصيلة الدم المطلوبة:</strong> <span
+                                class="badge bg-danger fs-5">@request?.BloodTypeNeeded</span></p>
+                        <p><strong>المستشفى:</strong> @request?.HospitalName</p>
+                        <p><strong>المدينة:</strong> @request?.City?.CityName</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>الفصائل المتوافقة:</strong></p>
+                        <p>
+                            @foreach (var type in compatibleTypes!)
+                            {
+                                <span class="badge bg-success me-1">@type</span>
+                            }
+                        </p>
+                        <p><strong>المتبرعون المتوافقون:</strong> <span class="badge bg-primary">@Model.Count</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (Model.Any())
+{
+    <div class="row">
+        @foreach (var donor in Model)
+        {
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card shadow h-100">
+                    <div class="card-header bg-success text-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="fas fa-user"></i> @donor.User?.FullName</h5>
+                            <span class="badge bg-light text-danger">@donor.BloodType</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-2">
+                            <i class="fas fa-phone"></i>
+                            <strong>الهاتف:</strong> @donor.User?.PhoneNumber
+                        </p>
+                        <p class="mb-2">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <strong>المدينة:</strong> @donor.User?.City?.CityName
+                        </p>
+                        <p class="mb-2">
+                            <i class="fas fa-venus-mars"></i>
+                            <strong>الجنس:</strong> @(donor.Gender == "Male" ? "ذكر" : "أنثى")
+                        </p>
+                        <p class="mb-2">
+                            <i class="fas fa-birthday-cake"></i>
+                            <strong>العمر:</strong> @((DateTime.Now.Year - donor.DateOfBirth.Year)) سنة
+                        </p>
+                        @if (donor.LastDonationDate.HasValue)
+                        {
+                            var daysSinceLastDonation = (DateTime.Now - donor.LastDonationDate.Value).Days;
+                            <p class="mb-0">
+                                <i class="fas fa-calendar-check"></i>
+                                <strong>آخر تبرع:</strong> منذ @daysSinceLastDonation يوم
+                            </p>
+                        }
+                        else
+                        {
+                            <p class="mb-0">
+                                <i class="fas fa-star"></i>
+                                <span class="badge bg-warning">متبرع لأول مرة</span>
+                            </p>
+                        }
+
+                        <div class="alert alert-info mt-3 mb-0">
+                            <small>
+                                <i class="fas fa-info-circle"></i>
+                                @Blood_Donation.Services.BloodCompatibilityService.GetCompatibilityMessage(donor.BloodType,
+                                request!.BloodTypeNeeded)
+                    </small>
+                </div>
+            </div>
+            <div class="card-footer bg-light">
+                <form asp-controller="Matching" asp-action="CreateMatch" method="post">
+                    <input type="hidden" name="requestId" value="@request?.RequestId" />
+                    <input type="hidden" name="donorId" value="@donor.DonorId" />
+                    <button type="submit" class="btn btn-success w-100">
+                        <i class="fas fa-plus-circle"></i> إضافة كمتبرع محتمل
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+        }
+    </div>
+}
+else
+{
+    <div class="alert alert-warning text-center">
+        <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
+        <h4>لم يتم العثور على متبرعين متطابقين</h4>
+        <p>لا يوجد متبرعون متاحون في نفس المدينة بفصيلة الدم المطلوبة حالياً.</p>
+        <p class="mb-0">
+            <small>يمكنك توسيع البحث أو الانتظار حتى يتوفر متبرعون جدد.</small>
+        </p>
+    </div>
+}
+
+<div class="mt-4">
+    <a asp-controller="BloodRequest" asp-action="Details" asp-route-id="@request?.RequestId" class="btn btn-secondary">
+        <i class="fas fa-arrow-right"></i> العودة لتفاصيل الطلب
+    </a>
+</div>
