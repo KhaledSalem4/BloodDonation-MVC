@@ -1,0 +1,238 @@
+@model dynamic
+@{
+    ViewData["Title"] = "لوحة التحكم";
+}
+
+<div class="container mt-4">
+    <h2 class="mb-4">
+        <i class="fas fa-tachometer-alt ms-2"></i>
+        لوحة التحكم الإدارية
+    </h2>
+
+    <!-- Statistics Cards -->
+    <div class="row g-4 mb-4">
+        <!-- Users Stats -->
+        <div class="col-md-3">
+            <div class="card border-primary shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-users fa-3x text-primary mb-3"></i>
+                    <h3 class="fw-bold">@Model.TotalUsers</h3>
+                    <p class="text-muted mb-0">إجمالي المستخدمين</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Donors Stats -->
+        <div class="col-md-3">
+            <div class="card border-success shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-hand-holding-heart fa-3x text-success mb-3"></i>
+                    <h3 class="fw-bold">@Model.TotalDonors</h3>
+                    <p class="text-muted mb-1">إجمالي المتبرعين</p>
+                    <small class="text-success">(@Model.ActiveDonors متاح)</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Patients Stats -->
+        <div class="col-md-3">
+            <div class="card border-info shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-hospital-user fa-3x text-info mb-3"></i>
+                    <h3 class="fw-bold">@Model.TotalPatients</h3>
+                    <p class="text-muted mb-0">إجمالي المرضى</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Requests Stats -->
+        <div class="col-md-3">
+            <div class="card border-danger shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-file-medical fa-3x text-danger mb-3"></i>
+                    <h3 class="fw-bold">@Model.TotalRequests</h3>
+                    <p class="text-muted mb-1">إجمالي الطلبات</p>
+                    <small class="text-danger">(@Model.OpenRequests مفتوح)</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Matches and Donations Stats -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card border-warning shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-handshake fa-3x text-warning mb-3"></i>
+                    <h3 class="fw-bold">@Model.TotalMatches</h3>
+                    <p class="text-muted mb-0">إجمالي المطابقات</p>
+                    <div class="mt-2">
+                        <small class="badge bg-warning text-dark ms-1">@Model.PendingMatches معلق</small>
+                        <small class="badge bg-success ms-1">@Model.AcceptedMatches مقبول</small>
+                        <small class="badge bg-info ms-1">@Model.CompletedMatches مكتمل</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-primary shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-heartbeat fa-3x text-primary mb-3"></i>
+                    <h3 class="fw-bold">@Model.TotalDonations</h3>
+                    <p class="text-muted mb-0">إجمالي التبرعات</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-success shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-calendar-check fa-3x text-success mb-3"></i>
+                    <h3 class="fw-bold">@Model.DonationsThisMonth</h3>
+                    <p class="text-muted mb-0">تبرعات هذا الشهر</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Requests -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-danger text-white">
+            <h5 class="mb-0">
+                <i class="fas fa-file-medical ms-2"></i>
+                أحدث الطلبات
+            </h5>
+        </div>
+        <div class="card-body">
+            @if (Model.RecentRequests.Count > 0)
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>المريض</th>
+                                <th>فصيلة الدم</th>
+                                <th>المدينة</th>
+                                <th>الأولوية</th>
+                                <th>الحالة</th>
+                                <th>التاريخ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var request in Model.RecentRequests)
+                            {
+                                <tr>
+                                    <td>@request.Patient.User.FullName</td>
+                                    <td><span class="badge bg-danger">@request.BloodType</span></td>
+                                    <td>@request.City.CityName</td>
+                                    <td>
+                                        @if (request.UrgencyLevel == "High")
+                                        {
+                                            <span class="badge bg-danger">عاجل</span>
+                                        }
+                                        else if (request.UrgencyLevel == "Medium")
+                                        {
+                                            <span class="badge bg-warning text-dark">متوسط</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-info">عادي</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (request.Status == "Open")
+                                        {
+                                            <span class="badge bg-success">مفتوح</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">مغلق</span>
+                                        }
+                                    </td>
+                                    <td>@request.CreatedAt.ToString("yyyy/MM/dd")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <p class="text-muted text-center mb-0">لا توجد طلبات</p>
+            }
+            <div class="text-center mt-3">
+                <a asp-action="Requests" class="btn btn-outline-danger">
+                    <i class="fas fa-list ms-2"></i>
+                    عرض جميع الطلبات
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Donations -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0">
+                <i class="fas fa-heartbeat ms-2"></i>
+                أحدث التبرعات
+            </h5>
+        </div>
+        <div class="card-body">
+            @if (Model.RecentDonations.Count > 0)
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>المتبرع</th>
+                                <th>فصيلة الدم</th>
+                                <th>الكمية</th>
+                                <th>التاريخ</th>
+                                <th>الملاحظات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var donation in Model.RecentDonations)
+                            {
+                                <tr>
+                                    <td>@donation.Donor.User.FullName</td>
+                                    <td><span class="badge bg-danger">@donation.Donor.BloodType</span></td>
+                                    <td>@donation.Quantity وحدة</td>
+                                    <td>@donation.DonationDate.ToString("yyyy/MM/dd")</td>
+                                    <td>@(donation.Notes ?? "لا يوجد")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <p class="text-muted text-center mb-0">لا توجد تبرعات</p>
+            }
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row g-3">
+        <div class="col-md-4">
+            <a asp-action="Users" class="btn btn-primary btn-lg w-100">
+                <i class="fas fa-users ms-2"></i>
+                إدارة المستخدمين
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a asp-action="Requests" class="btn btn-danger btn-lg w-100">
+                <i class="fas fa-file-medical ms-2"></i>
+                إدارة الطلبات
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a asp-action="Matches" class="btn btn-warning btn-lg w-100">
+                <i class="fas fa-handshake ms-2"></i>
+                إدارة المطابقات
+            </a>
+        </div>
+    </div>
+</div>

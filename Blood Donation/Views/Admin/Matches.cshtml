@@ -1,0 +1,74 @@
+@model IEnumerable<Blood_Donation.Models.DonationMatch>
+@{
+    ViewData["Title"] = "إدارة المطابقات";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>
+            <i class="fas fa-handshake ms-2"></i>
+            إدارة المطابقات
+        </h2>
+        <a asp-action="Dashboard" class="btn btn-secondary">
+            <i class="fas fa-arrow-right ms-2"></i>
+            العودة للوحة التحكم
+        </a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>#</th>
+                            <th>المتبرع</th>
+                            <th>المريض</th>
+                            <th>فصيلة الدم</th>
+                            <th>الحالة</th>
+                            <th>تاريخ المطابقة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var match in Model)
+                        {
+                            <tr>
+                                <td>@match.MatchId</td>
+                                <td>
+                                    @match.Donor?.User?.FullName
+                                    <br />
+                                    <small class="text-muted">@match.Donor?.User?.PhoneNumber</small>
+                                </td>
+                                <td>
+                                    @match.BloodRequest?.Patient?.User?.FullName
+                                    <br />
+                                    <small class="text-muted">@match.BloodRequest?.Patient?.User?.PhoneNumber</small>
+                                </td>
+                                <td><span class="badge bg-danger">@match.Donor?.BloodType</span></td>
+                                <td>
+                                    @if (match.MatchStatus == "Pending")
+                                    {
+                                        <span class="badge bg-warning text-dark">معلق</span>
+                                    }
+                                    else if (match.MatchStatus == "Accepted")
+                                    {
+                                        <span class="badge bg-success">مقبول</span>
+                                    }
+                                    else if (match.MatchStatus == "Completed")
+                                    {
+                                        <span class="badge bg-info">مكتمل</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">مرفوض</span>
+                                    }
+                                </td>
+                                <td>@match.MatchedAt.ToString("yyyy/MM/dd")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
