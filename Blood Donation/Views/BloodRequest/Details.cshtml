@@ -1,0 +1,193 @@
+@model Blood_Donation.Models.BloodRequest
+
+@{
+    ViewData["Title"] = "تفاصيل الطلب";
+}
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-danger text-white">
+                <h3><i class="fas fa-file-medical"></i> تفاصيل طلب الدم</h3>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <h5>فصيلة الدم المطلوبة</h5>
+                        <h2><span class="badge bg-danger">@Model.BloodTypeNeeded</span></h2>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>درجة الإلحاح</h5>
+                        <h3>
+                            @if (Model.UrgencyLevel == "High")
+                            {
+                                <span class="badge bg-danger">عاجل</span>
+                            }
+                            else if (Model.UrgencyLevel == "Medium")
+                            {
+                                <span class="badge bg-warning">متوسط</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-success">عادي</span>
+                            }
+                        </h3>
+                    </div>
+                </div>
+
+                <hr>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <p><i class="fas fa-hospital"></i> <strong>المستشفى:</strong></p>
+                        <p class="text-muted">@Model.HospitalName</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <p><i class="fas fa-map-marker-alt"></i> <strong>المدينة:</strong></p>
+                        <p class="text-muted">@Model.City?.CityName</p>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <p><i class="fas fa-calendar"></i> <strong>تاريخ الطلب:</strong></p>
+                        <p class="text-muted">@Model.CreatedAt.ToString("yyyy/MM/dd - hh:mm tt")</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <p><i class="fas fa-info-circle"></i> <strong>حالة الطلب:</strong></p>
+                        <p>
+                            @if (Model.Status == "Open")
+                            {
+                                <span class="badge bg-success">مفتوح</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">مغلق</span>
+                            }
+                        </p>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(Model.Notes))
+                {
+                    <div class="mb-3">
+                        <p><i class="fas fa-sticky-note"></i> <strong>ملاحظات:</strong></p>
+                        <div class="alert alert-info">
+                            @Model.Notes
+                        </div>
+                    </div>
+                }
+
+                <div class="mt-4">
+                    <a asp-action="MyRequests" class="btn btn-secondary">
+                        <i class="fas fa-arrow-right"></i> العودة للطلبات
+                    </a>
+                    @if (Model.Status == "Open")
+                    {
+                        <a asp-controller="Matching" asp-action="FindMatches" asp-route-id="@Model.RequestId"
+                            class="btn btn-success">
+                            <i class="fas fa-search"></i> البحث عن متبرعين
+                        </a>
+                        <form asp-action="Close" asp-route-id="@Model.RequestId" method="post" class="d-inline"
+                            onsubmit="return confirm('هل أنت متأكد من إغلاق هذا الطلب؟')">
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-times-circle"></i> إغلاق الطلب
+                            </button>
+                        </form>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h5><i class="fas fa-users"></i> المتبرعون المنتظرون</h5>
+            </div>
+            <div class="card-body">
+                @if (Model.DonationMatches?.Any() == true)
+                {
+                    <p class="mb-3">
+                        عدد المتبرعين: <strong>@Model.DonationMatches.Count</strong>
+                    </p>
+
+                    @foreach (var match in Model.DonationMatches.OrderByDescending(m => m.MatchedAt))
+                    {
+                        <div class="border rounded p-3 mb-3 @(match.MatchStatus == "Accepted" ? "border-success bg-success bg-opacity-10" : match.MatchStatus == "Rejected" ? "border-danger bg-danger bg-opacity-10" : "border-warning")">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <h6 class="mb-1"><i class="fas fa-user"></i> @match.Donor?.User?.FullName</h6>
+                                    <p class="mb-1 text-muted small">
+                                        <i class="fas fa-tint"></i> @match.Donor?.BloodType
+                                    </p>
+                                    <p class="mb-1 text-muted small">
+                                        <i class="fas fa-map-marker-alt"></i> @match.Donor?.User?.City?.CityName
+                                    </p>
+                                    <p class="mb-1 text-muted small">
+                                        <i class="fas fa-clock"></i> @match.MatchedAt.ToString("yyyy/MM/dd - hh:mm tt")
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-2">
+                                @if (match.MatchStatus == "Pending")
+                                {
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="fas fa-hourglass-half"></i> في الانتظار
+                                    </span>
+                                }
+                                else if (match.MatchStatus == "Accepted")
+                                {
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-check-circle"></i> تم القبول
+                                    </span>
+                                    <div class="mt-2 p-2 bg-success bg-opacity-10 rounded">
+                                        <small class="text-success">
+                                            <i class="fas fa-phone"></i> تواصل: @match.Donor?.User?.PhoneNumber
+                                        </small>
+                                    </div>
+                                }
+                                else if (match.MatchStatus == "Rejected")
+                                {
+                                    <span class="badge bg-danger">
+                                        <i class="fas fa-times-circle"></i> تم الرفض
+                                    </span>
+                                }
+                            </div>
+
+                            @if (match.MatchStatus == "Pending" && Model.Status == "Open")
+                            {
+                                <div class="btn-group w-100 mt-2" role="group">
+                                    <form asp-action="AcceptDonor" asp-controller="BloodRequest" method="post" class="flex-fill">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="matchId" value="@match.MatchId" />
+                                        <button type="submit" class="btn btn-success btn-sm w-100" onclick="return confirm('هل تريد قبول هذا المتبرع؟')">
+                                            <i class="fas fa-check"></i> قبول
+                                        </button>
+                                    </form>
+                                    <form asp-action="RejectDonor" asp-controller="BloodRequest" method="post" class="flex-fill ms-2">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="matchId" value="@match.MatchId" />
+                                        <button type="submit" class="btn btn-danger btn-sm w-100" onclick="return confirm('هل تريد رفض هذا المتبرع؟')">
+                                            <i class="fas fa-times"></i> رفض
+                                        </button>
+                                    </form>
+                                </div>
+                            }
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="alert alert-warning">
+                        <i class="fas fa-info-circle"></i> لا يوجد متبرعون منتظرون حتى الآن
+                    </div>
+                    <p class="small text-muted">
+                        عند طلب متبرع للتبرع، سيظهر هنا ويمكنك قبوله أو رفضه
+                    </p>
+                }
+            </div>
+        </div>
+    </div>
+</div>

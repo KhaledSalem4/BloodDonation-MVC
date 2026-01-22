@@ -1,0 +1,130 @@
+@model List<Blood_Donation.Models.BloodRequest>
+
+@{
+    ViewData["Title"] = "طلبات الدم المتاحة";
+}
+
+<div class="card shadow mb-4">
+    <div class="card-header bg-danger text-white">
+        <h3><i class="fas fa-hand-holding-medical"></i> طلبات الدم المتاحة للتبرع</h3>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-3 mb-4">
+            <div class="col-md-4">
+                <label class="form-label">فصيلة الدم</label>
+                <select name="bloodType" class="form-select">
+                    <option value="">-- كل الفصائل --</option>
+                    <option value="A+" selected="@(ViewBag.SelectedBloodType == "A+")">A+</option>
+                    <option value="A-" selected="@(ViewBag.SelectedBloodType == "A-")">A-</option>
+                    <option value="B+" selected="@(ViewBag.SelectedBloodType == "B+")">B+</option>
+                    <option value="B-" selected="@(ViewBag.SelectedBloodType == "B-")">B-</option>
+                    <option value="AB+" selected="@(ViewBag.SelectedBloodType == "AB+")">AB+</option>
+                    <option value="AB-" selected="@(ViewBag.SelectedBloodType == "AB-")">AB-</option>
+                    <option value="O+" selected="@(ViewBag.SelectedBloodType == "O+")">O+</option>
+                    <option value="O-" selected="@(ViewBag.SelectedBloodType == "O-")">O-</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">المدينة</label>
+                <select name="cityId" class="form-select" asp-items="ViewBag.Cities">
+                    <option value="">-- كل المدن --</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">&nbsp;</label>
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-search"></i> بحث
+                </button>
+            </div>
+        </form>
+
+        @if (Model.Any())
+        {
+            <div class="row">
+                @foreach (var request in Model)
+                {
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card h-100 @(request.UrgencyLevel == "High" ? "border-danger" : "")">
+                            @if (request.UrgencyLevel == "High")
+                            {
+                                <div class="card-header bg-danger text-white">
+                                    <strong><i class="fas fa-exclamation-triangle"></i> حالة عاجلة</strong>
+                                </div>
+                            }
+                            <div class="card-body">
+                                <h4 class="text-danger mb-3">
+                                    <i class="fas fa-tint"></i> @request.BloodTypeNeeded
+                                </h4>
+
+                                <p class="mb-2">
+                                    <i class="fas fa-hospital"></i>
+                                    <strong>المستشفى:</strong><br>
+                                    <small>@request.HospitalName</small>
+                                </p>
+
+                                <p class="mb-2">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <strong>المدينة:</strong><br>
+                                    <small>@request.City?.CityName</small>
+                                </p>
+
+                                <p class="mb-2">
+                                    <i class="fas fa-user-injured"></i>
+                                    <strong>المريض:</strong><br>
+                                    <small>@request.Patient?.User?.FullName</small>
+                                </p>
+
+                                <p class="mb-2">
+                                    <i class="fas fa-calendar"></i>
+                                    <strong>تاريخ الطلب:</strong><br>
+                                    <small>@request.CreatedAt.ToString("yyyy/MM/dd")</small>
+                                </p>
+
+                                @if (!string.IsNullOrEmpty(request.Notes))
+                                {
+                                    <p class="mb-0">
+                                        <i class="fas fa-sticky-note"></i>
+                                        <strong>ملاحظات:</strong><br>
+                                        <small class="text-muted">@request.Notes</small>
+                                    </p>
+                                }
+                            </div>
+                            <div class="card-footer bg-light">
+                                @if (User.Identity?.IsAuthenticated == true && User.IsInRole("Donor"))
+                                {
+                                    <form asp-action="RequestToDonate" asp-controller="BloodRequest" method="post" class="d-inline w-100">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="requestId" value="@request.RequestId" />
+                                        <button type="submit" class="btn btn-success btn-sm w-100">
+                                            <i class="fas fa-hand-holding-heart"></i> أريد التبرع
+                                        </button>
+                                    </form>
+                                }
+                                else if (User.Identity?.IsAuthenticated != true)
+                                {
+                                    <a asp-action="Login" asp-controller="Account" asp-route-returnUrl="@Url.Action("AllRequests")" class="btn btn-primary btn-sm w-100">
+                                        <i class="fas fa-sign-in-alt"></i> سجل دخول للتبرع
+                                    </a>
+                                }
+                                else
+                                {
+                                    <button type="button" class="btn btn-secondary btn-sm w-100" disabled>
+                                        <i class="fas fa-info-circle"></i> متاح للمتبرعين فقط
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-info text-center">
+                <i class="fas fa-info-circle fa-3x mb-3"></i>
+                <h5>لا توجد طلبات متاحة حالياً</h5>
+                <p>جرب تغيير معايير البحث</p>
+            </div>
+        }
+    </div>
+</div>

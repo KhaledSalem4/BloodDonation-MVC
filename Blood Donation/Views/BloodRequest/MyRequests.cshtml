@@ -1,0 +1,134 @@
+@model List<Blood_Donation.Models.BloodRequest>
+
+@{
+    ViewData["Title"] = "طلباتي";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-list"></i> طلبات الدم الخاصة بي</h2>
+    <a asp-action="Create" class="btn btn-danger">
+        <i class="fas fa-plus"></i> طلب دم جديد
+    </a>
+</div>
+
+@if (Model.Any())
+{
+    <div class="row">
+        @foreach (var request in Model)
+        {
+            <div class="col-md-6 mb-4">
+                <div class="card shadow h-100">
+                    <div class="card-header @(request.Status == "Open" ? "bg-success" : "bg-secondary") text-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-tint"></i> @request.BloodTypeNeeded
+                            </h5>
+                            @if (request.Status == "Open")
+                            {
+                                <span class="badge bg-light text-success">مفتوح</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-light text-dark">مغلق</span>
+                            }
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-2">
+                            <i class="fas fa-hospital"></i>
+                            <strong>المستشفى:</strong> @request.HospitalName
+                        </p>
+                        <p class="mb-2">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <strong>المدينة:</strong> @request.City?.CityName
+                        </p>
+                        <p class="mb-2">
+                            <i class="fas fa-calendar"></i>
+                            <strong>تاريخ الطلب:</strong> @request.CreatedAt.ToString("yyyy/MM/dd")
+                        </p>
+                        <p class="mb-2">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>الإلحاح:</strong>
+                            @if (request.UrgencyLevel == "High")
+                            {
+                                <span class="badge bg-danger">عاجل</span>
+                            }
+                            else if (request.UrgencyLevel == "Medium")
+                            {
+                                <span class="badge bg-warning">متوسط</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-success">عادي</span>
+                            }
+                        </p>
+
+                        @if (request.DonationMatches?.Any() == true)
+                        {
+                            var pendingCount = request.DonationMatches.Count(m => m.MatchStatus == "Pending");
+                            var acceptedCount = request.DonationMatches.Count(m => m.MatchStatus == "Accepted");
+                            
+                            <div class="mb-2">
+                                <i class="fas fa-users"></i>
+                                <strong>المتبرعون:</strong>
+                                @if (pendingCount > 0)
+                                {
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="fas fa-hourglass-half"></i> @pendingCount في الانتظار
+                                    </span>
+                                }
+                                @if (acceptedCount > 0)
+                                {
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-check-circle"></i> @acceptedCount مقبول
+                                    </span>
+                                }
+                                @if (pendingCount == 0 && acceptedCount == 0)
+                                {
+                                    <span class="badge bg-secondary">@request.DonationMatches.Count</span>
+                                }
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrEmpty(request.Notes))
+                        {
+                            <p class="mb-2">
+                                <i class="fas fa-sticky-note"></i>
+                                <strong>ملاحظات:</strong> @request.Notes
+                            </p>
+                        }
+                    </div>
+                    <div class="card-footer bg-light">
+                        <div class="d-grid gap-2">
+                            <a asp-action="Details" asp-route-id="@request.RequestId" class="btn btn-primary btn-sm">
+                                <i class="fas fa-eye"></i> عرض التفاصيل
+                            </a>
+                            @if (request.Status == "Open")
+                            {
+                                <form asp-action="Close" asp-route-id="@request.RequestId" method="post"
+                                    onsubmit="return confirm('هل أنت متأكد من إغلاق هذا الطلب؟')">
+                                    <button type="submit" class="btn btn-secondary btn-sm w-100">
+                                        <i class="fas fa-times-circle"></i> إغلاق الطلب
+                                    </button>
+                                </form>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="card shadow">
+        <div class="card-body text-center py-5">
+            <i class="fas fa-inbox fa-5x text-muted mb-3"></i>
+            <h4>لا توجد طلبات حتى الآن</h4>
+            <p class="text-muted">ابدأ بإنشاء طلب دم جديد</p>
+            <a asp-action="Create" class="btn btn-danger btn-lg mt-3">
+                <i class="fas fa-plus"></i> إنشاء طلب جديد
+            </a>
+        </div>
+    </div>
+}
